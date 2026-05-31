@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>imahima</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f5f0;
+    --gray: #888;
+    --light: #e8e8e2;
+  }
+
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: var(--white);
+    color: var(--black);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    width: 100%;
+    padding: 2rem 2rem 1rem;
+    border-bottom: 2px solid var(--black);
+  }
+
+  .logo {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+  }
+  .logo span { font-weight: 400; opacity: 0.4; font-size: 0.75rem; }
+
+  .main {
+    width: 100%;
+    max-width: 480px;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-bottom: 0.5rem;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--black);
+    background: transparent;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 1rem;
+    outline: none;
+    transition: background 0.15s;
+  }
+  input[type="text"]:focus { background: var(--light); }
+
+  .btn {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid var(--black);
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .btn:hover { background: transparent; color: var(--black); }
+  .btn.outline { background: transparent; color: var(--black); }
+  .btn.outline:hover { background: var(--black); color: var(--white); }
+  .btn.full { width: 100%; }
+
+  #setup-screen { display: flex; flex-direction: column; gap: 1.5rem; }
+  #app-screen { display: none; flex-direction: column; gap: 1.75rem; }
+
+  .my-status-area {
+    border: 2px solid var(--black);
+    padding: 1.25rem;
+  }
+  .my-name-display {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    opacity: 0.5;
+    margin-bottom: 1rem;
+  }
+  .status-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .status-btn {
+    padding: 1.25rem 0.75rem;
+    border: 2px solid var(--black);
+    background: transparent;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .status-btn .emoji { font-size: 1.5rem; }
+  .status-btn .label { font-size: 0.65rem; font-family: 'Space Mono', monospace; opacity: 0.6; }
+  .status-btn:hover { background: var(--light); }
+  .status-btn.active { background: var(--black); color: var(--white); }
+
+  /* NOTIFICATION */
+  .notif-box {
+    border: 2px solid var(--black);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .notif-box-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .notif-box-title { font-size: 0.85rem; font-weight: 700; }
+  .notif-box-sub { font-family: 'Space Mono', monospace; font-size: 0.62rem; opacity: 0.45; }
+  .notif-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.25rem 0.6rem;
+    border: 1.5px solid;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .notif-badge.on { border-color: var(--black); background: var(--black); color: var(--white); }
+  .notif-badge.off { border-color: var(--gray); color: var(--gray); }
+  .notif-badge.denied { border-color: var(--gray); color: var(--gray); cursor: default; opacity: 0.5; }
+
+  /* INVITE */
+  .invite-box {
+    border: 2px solid var(--black);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .invite-url {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    word-break: break-all;
+    opacity: 0.6;
+    line-height: 1.6;
+  }
+  .copy-feedback {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-align: center;
+  }
+  .copy-feedback.show { opacity: 1; }
+
+  /* MEMBERS */
+  .members-list { display: flex; flex-direction: column; gap: 0.4rem; }
+  .member-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--light);
+    border-left: 3px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .member-row.hima { border-left-color: var(--black); }
+  .member-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--light); flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .member-row.hima .member-dot { background: var(--black); }
+  .member-name { font-size: 0.9rem; flex: 1; }
+  .member-status-text { font-family: 'Space Mono', monospace; font-size: 0.65rem; opacity: 0.5; }
+  .member-time { font-family: 'Space Mono', monospace; font-size: 0.6rem; opacity: 0.35; }
+
+  .empty {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    opacity: 0.4;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  #toast {
+    position: fixed;
+    bottom: 2rem; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--black); color: var(--white);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  .poll-dot {
+    width: 5px; height: 5px; border-radius: 50%; background: var(--black);
+    animation: pulse 1.5s infinite;
+    display: inline-block; margin-left: 6px; vertical-align: middle;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">imahima<span> / いまひま</span></div>
+</header>
+
+<div class="main">
+
+  <div id="setup-screen">
+    <div>
+      <div class="section-label">あなたの名前</div>
+      <input type="text" id="name-input" placeholder="例：ゆか" maxlength="20" />
+    </div>
+    <div>
+      <div class="section-label">グループコード（なければ新規作成）</div>
+      <input type="text" id="group-input" placeholder="友達から教えてもらったコード" maxlength="12" style="text-transform:uppercase;" />
+    </div>
+    <button class="btn full" onclick="enterApp()">はじめる</button>
+  </div>
+
+  <div id="app-screen">
+
+    <div class="my-status-area">
+      <div class="my-name-display" id="my-name-display">—</div>
+      <div class="status-btns">
+        <button class="status-btn" id="btn-hima" onclick="setStatus('hima')">
+          <span class="emoji">🙋</span>
+          <span style="font-size:1rem;font-weight:700;">暇‼️</span>
+          <span class="label">hima</span>
+        </button>
+        <button class="status-btn" id="btn-busy" onclick="setStatus('busy')">
+          <span class="emoji">📚</span>
+          <span style="font-size:1rem;font-weight:700;">勉強中‼️</span>
+          <span class="label">busy</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 通知 -->
+    <div>
+      <div class="section-label">通知</div>
+      <div class="notif-box">
+        <div class="notif-box-left">
+          <div class="notif-box-title">ポップアップ通知</div>
+          <div class="notif-box-sub" id="notif-sub">友達のステータス変化をお知らせ</div>
+        </div>
+        <div class="notif-badge off" id="notif-badge" onclick="toggleNotif()">OFF</div>
+      </div>
+    </div>
+
+    <!-- 招待 -->
+    <div>
+      <div class="section-label">グループ招待リンク <span class="poll-dot"></span></div>
+      <div class="invite-box">
+        <div class="invite-url" id="invite-url-display">—</div>
+        <button class="btn outline full" onclick="copyInvite()">リンクをコピー</button>
+        <div class="copy-feedback" id="copy-feedback">コピーしました！</div>
+      </div>
+    </div>
+
+    <!-- メンバー -->
+    <div>
+      <div class="section-label">メンバー</div>
+      <div class="members-list" id="members-list">
+        <div class="empty">まだメンバーがいないよ</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'imahima_v1';
+let myName = '', groupCode = '', myStatus = null, pollTimer = null;
+let lastSeenStatuses = {};
+
+function getGroupData(c) {
+  try { return JSON.parse(localStorage.getItem('imahima_group_' + c) || '{}'); } catch { return {}; }
+}
+function setGroupData(c, d) { localStorage.setItem('imahima_group_' + c, JSON.stringify(d)); }
+
+function enterApp() {
+  const n = document.getElementById('name-input').value.trim();
+  const g = document.getElementById('group-input').value.trim().toUpperCase();
+  if (!n) { showToast('名前を入力してね！'); return; }
+  myName = n;
+  groupCode = g || Math.random().toString(36).substr(2,6).toUpperCase();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ myName, groupCode }));
+
+  const data = getGroupData(groupCode);
+  if (!data[myName]) data[myName] = { status: null, updatedAt: Date.now() };
+  setGroupData(groupCode, data);
+
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'flex';
+  document.getElementById('my-name-display').textContent = myName + ' としてログイン中';
+  document.getElementById('invite-url-display').textContent = location.href.split('#')[0] + '#' + groupCode;
+
+  refreshNotifUI();
+  renderMembers();
+  pollTimer = setInterval(() => { checkForUpdates(); renderMembers(); }, 2000);
+}
+
+function setStatus(s) {
+  myStatus = s;
+  const data = getGroupData(groupCode);
+  data[myName] = { status: s, updatedAt: Date.now() };
+  setGroupData(groupCode, data);
+  document.getElementById('btn-hima').classList.toggle('active', s === 'hima');
+  document.getElementById('btn-busy').classList.toggle('active', s === 'busy');
+  showToast(s === 'hima' ? '暇！送信したよ🙋' : '勉強中！送信したよ📚');
+  if (window.bc) window.bc.postMessage({ type: 'status', name: myName, status: s, group: groupCode });
+  renderMembers();
+}
+
+// ===== NOTIFICATION =====
+function refreshNotifUI() {
+  if (!('Notification' in window)) {
+    document.getElementById('notif-badge').textContent = '非対応';
+    document.getElementById('notif-badge').className = 'notif-badge denied';
+    return;
+  }
+  const p = Notification.permission;
+  const badge = document.getElementById('notif-badge');
+  const sub = document.getElementById('notif-sub');
+  if (p === 'granted') {
+    badge.textContent = 'ON'; badge.className = 'notif-badge on';
+    sub.textContent = '変化があったらすぐ通知が届くよ';
+  } else if (p === 'denied') {
+    badge.textContent = 'ブロック中'; badge.className = 'notif-badge denied';
+    sub.textContent = 'ブラウザの設定から許可してね';
+  } else {
+    badge.textContent = 'OFF'; badge.className = 'notif-badge off';
+    sub.textContent = 'タップして通知をオンにする';
+  }
+}
+
+function toggleNotif() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'denied') { showToast('ブラウザ設定から許可してね'); return; }
+  if (Notification.permission === 'granted') {
+    showToast('通知はブラウザ設定からオフにできるよ'); return;
+  }
+  Notification.requestPermission().then(p => {
+    refreshNotifUI();
+    if (p === 'granted') {
+      showToast('通知をオンにしました！');
+      const data = getGroupData(groupCode);
+      Object.entries(data).forEach(([n,i]) => { lastSeenStatuses[n] = i.status; });
+    } else {
+      showToast('通知が拒否されました');
+    }
+  });
+}
+
+// ===== RENDER =====
+function renderMembers() {
+  const data = getGroupData(groupCode);
+  const list = document.getElementById('members-list');
+  const members = Object.entries(data).filter(([n]) => n !== myName);
+  if (!members.length) {
+    list.innerHTML = '<div class="empty">まだ誰もいないよ。友達にリンク送ってみよう！</div>'; return;
+  }
+  members.sort(([,a],[,b]) => {
+    if (a.status==='hima' && b.status!=='hima') return -1;
+    if (b.status==='hima' && a.status!=='hima') return 1;
+    return (b.updatedAt||0)-(a.updatedAt||0);
+  });
+  list.innerHTML = members.map(([name, info]) => {
+    const sc = info.status === 'hima' ? 'hima' : '';
+    const st = info.status === 'hima' ? '暇‼️' : info.status === 'busy' ? '勉強中‼️' : '—';
+    const t = info.updatedAt ? fmtTime(info.updatedAt) : '';
+    return `<div class="member-row ${sc}">
+      <div class="member-dot"></div>
+      <div class="member-name">${esc(name)}</div>
+      <div class="member-status-text">${st}</div>
+      <div class="member-time">${t}</div>
+    </div>`;
+  }).join('');
+}
+
+function fmtTime(ts) {
+  const d = Math.floor((Date.now()-ts)/1000);
+  if (d < 60) return 'いま';
+  if (d < 3600) return Math.floor(d/60)+'分前';
+  return Math.floor(d/3600)+'時間前';
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ===== CHECK UPDATES =====
+function checkForUpdates() {
+  if (Notification.permission !== 'granted') return;
+  const data = getGroupData(groupCode);
+  Object.entries(data).forEach(([name, info]) => {
+    if (name === myName) return;
+    const prev = lastSeenStatuses[name];
+    if (prev !== undefined && prev !== info.status && info.status) {
+      try { new Notification('imahima', { body: info.status === 'hima' ? `${name} が暇になったよ！🙋` : `${name} が勉強中になったよ📚` }); } catch {}
+    }
+    lastSeenStatuses[name] = info.status;
+  });
+}
+
+if ('BroadcastChannel' in window) {
+  window.bc = new BroadcastChannel('imahima');
+  window.bc.onmessage = (e) => {
+    if (e.data?.type==='status' && e.data.group===groupCode && e.data.name!==myName) {
+      renderMembers();
+      if (Notification.permission==='granted') {
+        const prev = lastSeenStatuses[e.data.name];
+        if (prev !== e.data.status && e.data.status) {
+          try { new Notification('imahima', { body: e.data.status==='hima' ? `${e.data.name} が暇になったよ！🙋` : `${e.data.name} が勉強中になったよ📚` }); } catch {}
+        }
+        lastSeenStatuses[e.data.name] = e.data.status;
+      }
+    }
+  };
+}
+
+function copyInvite() {
+  const url = location.href.split('#')[0] + '#' + groupCode;
+  navigator.clipboard.writeText(url).then(() => {
+    const el = document.getElementById('copy-feedback');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+  }).catch(() => showToast('コピーできませんでした'));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+window.addEventListener('load', () => {
+  const hash = location.hash.slice(1).toUpperCase();
+  if (hash) document.getElementById('group-input').value = hash;
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (s?.myName) {
+      document.getElementById('name-input').value = s.myName;
+      if (s.groupCode && !hash) document.getElementById('group-input').value = s.groupCode;
+    }
+  } catch {}
+});
+
+window.addEventListener('visibilitychange', () => {
+  if (document.hidden) { clearInterval(pollTimer); pollTimer = null; }
+  else if (groupCode) { renderMembers(); pollTimer = setInterval(() => { checkForUpdates(); renderMembers(); }, 2000); }
+});
+</script>
+</body>
+</html>
